@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Coin Naga - Mahjong Slot</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background: linear-gradient(180deg, #7b0000 0%, #3a0000 100%);
+            color: #ffd700; font-family: sans-serif;
+            display: flex; flex-direction: column; align-items: center;
+            justify-content: center; height: 100vh; overflow: hidden;
+            touch-action: manipulation;
+        }
+
+        /* Notifikasi Toast Dalam Game */
+        .toast {
+            position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.9); color: white;
+            border: 2px solid #ffd700; padding: 12px 20px;
+            border-radius: 30px; font-size: 13px; font-weight: bold;
+            text-align: center; z-index: 9999;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+            opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
+        }
+        .toast.show { opacity: 1; }
+
+        .win-panel { text-align: center; margin-bottom: 10px; }
+        .win-panel h2 { font-size: 14px; color: #ffcc00; margin-bottom: 5px; }
+        .win-amount {
+            font-size: 28px; font-weight: bold; background: rgba(0,0,0,0.5);
+            padding: 5px 20px; border-radius: 20px; border: 1px solid #ffd700;
+            min-width: 150px; display: inline-block;
+        }
+
+        .grid {
+            display: grid; grid-template-columns: repeat(5, 55px);
+            grid-template-rows: repeat(4, 65px); gap: 6px;
+            background: rgba(0, 0, 0, 0.4); padding: 12px;
+            border-radius: 12px; border: 2px solid #ffd700; margin-bottom: 15px;
+        }
+
+        .tile {
+            background: linear-gradient(180deg, #fffcf0 0%, #e0d5b8 100%);
+            border-radius: 8px; display: flex; align-items: center;
+            justify-content: center; font-size: 32px;
+            box-shadow: 0 6px 0 #b3a78a, 0 8px 5px rgba(0,0,0,0.5);
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .win {
+            background: linear-gradient(180deg, #ffe066 0%, #ffb300 100%);
+            box-shadow: 0 6px 0 #cc8800, 0 0 15px #ffcc00;
+            animation: pop 0.4s ease-in-out infinite alternate; z-index: 10;
+        }
+        @keyframes pop { from { transform: scale(1); } to { transform: scale(1.15); } }
+
+        .control-panel {
+            display: flex; justify-content: space-between; align-items: center;
+            width: 100%; max-width: 320px; background: rgba(0, 0, 0, 0.6);
+            padding: 10px; border-radius: 12px; border: 1px solid #555; margin-bottom: 15px;
+        }
+        .info-box { display: flex; flex-direction: column; align-items: center; min-width: 80px; }
+        .info-label { font-size: 10px; color: #aaa; margin-bottom: 3px; }
+        .info-value { font-size: 15px; font-weight: bold; color: white; }
+
+        .bet-controls { display: flex; align-items: center; gap: 8px; }
+        .bet-btn {
+            background: linear-gradient(180deg, #444 0%, #222 100%); color: #ffd700;
+            border: 1px solid #777; width: 28px; height: 28px; border-radius: 50%;
+            font-size: 15px; font-weight: bold; display: flex;
+            align-items: center; justify-content: center; cursor: pointer;
+        }
+        .bet-btn:active { transform: translateY(3px); box-shadow: none; }
+        .bet-btn:disabled { opacity: 0.5; pointer-events: none; }
+
+        .action-panel {
+            display: flex; justify-content: space-between; align-items: center;
+            width: 100%; max-width: 320px; position: relative;
+        }
+        .side-btn {
+            width: 65px; height: 65px; border-radius: 50%; font-size: 11px;
+            font-weight: bold; background: linear-gradient(180deg, #444 0%, #222 100%);
+            color: white; border: 2px solid #777; box-shadow: 0 5px 0 #111;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            cursor: pointer;
+        }
+        .side-btn.active-turbo {
+            background: linear-gradient(180deg, #ffcc00 0%, #d48800 100%);
+            color: #333; border-color: #ffeeb3; box-shadow: 0 5px 0 #995500;
+        }
+        .side-btn:active { transform: translateY(4px); box-shadow: 0 1px 0 #111; }
+        
+        .spin-btn {
+            width: 85px; height: 85px; border-radius: 50%; font-size: 18px;
+            font-weight: bold; background: linear-gradient(180deg, #00d26a 0%, #00773c 100%);
+            color: white; border: 3px solid #b3ffcc; box-shadow: 0 6px 0 #004d26;
+            cursor: pointer;
+        }
+        .spin-btn:active { transform: translateY(6px); box-shadow: none; }
+        .spin-btn:disabled { filter: grayscale(100%); pointer-events: none; }
+
+        .auto-menu {
+            display: none; position: absolute; bottom: 90px; right: 0;
+            background: rgba(0,0,0,0.9); border: 2px solid #ffd700;
+            border-radius: 10px; padding: 10px; flex-direction: column; gap: 8px; z-index: 20;
+        }
+        .auto-menu.show { display: flex; }
+        .auto-option {
+            background: #333; color: white; border: 1px solid #777;
+            padding: 8px 20px; border-radius: 5px; font-weight: bold; cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="toast" class="toast">Notifikasi</div>
+
+    <div class="win-panel">
+        <h2>KEMENANGAN TOTAL</h2>
+        <div class="win-amount" id="score">Rp 0</div>
+    </div>
+
+    <div class="grid" id="grid"></div>
+
+    <div class="control-panel">
+        <div class="info-box">
+            <span class="info-label">SALDO AKUN</span>
+            <span class="info-value">Rp <span id="balance">0</span></span>
+        </div>
+        
+        <div class="bet-controls">
+            <button class="bet-btn" id="btnMin" onclick="decreaseBet()">-</button>
+            <div class="info-box">
+                <span class="info-label">TARUHAN</span>
+                <span class="info-value">Rp <span id="bet">1000</span></span>
+            </div>
+            <button class="bet-btn" id="btnPlus" onclick="increaseBet()">+</button>
+        </div>
+    </div>
+
+    <div class="action-panel">
+        <button class="side-btn" id="turboBtn" onclick="toggleTurbo()">
+            <span style="font-size:20px;">⚡</span> TURBO
+        </button>
+        <button class="spin-btn" id="spinBtn" onclick="spin()">PUTAR</button>
+        <button class="side-btn" id="autoBtn" onclick="toggleAutoMenu()">
+            <span style="font-size:16px;">🔄</span> <span id="autoTxt">AUTO</span>
+        </button>
+        <div class="auto-menu" id="autoMenu">
+            <button class="auto-option" onclick="startAuto(10)">10x Putaran</button>
+            <button class="auto-option" onclick="startAuto(30)">30x Putaran</button>
+            <button class="auto-option" onclick="startAuto(50)">50x Putaran</button>
+            <button class="auto-option" onclick="startAuto(80)">80x Putaran</button>
+        </div>
+    </div>
+
+    <script>
+        const symbols = ["🀄", "🐉", "🎋", "💰", "🪙", "💎"];
+        const cols = 5, rows = 4;
+        
+        const gridEl = document.getElementById('grid');
+        const scoreEl = document.getElementById('score');
+        const balanceEl = document.getElementById('balance');
+        const betEl = document.getElementById('bet');
+        const spinBtn = document.getElementById('spinBtn');
+        const turboBtn = document.getElementById('turboBtn');
+        const autoBtn = document.getElementById('autoBtn');
+        const autoMenu = document.getElementById('autoMenu');
+        const autoTxt = document.getElementById('autoTxt');
+        const btnMin = document.getElementById('btnMin');
+        const btnPlus = document.getElementById('btnPlus');
+        const toastEl = document.getElementById('toast');
+
+        // Pilihan taruhan dalam Rupiah
+        const betOptions = [1000, 5000, 10000, 25000, 50000, 100000];
+        let currentBetIndex = 0;
+        
+        let balance = 0;
+        let currentScore = 0;
+        let isSpinning = false, isTurbo = false, autoSpinsLeft = 0;
+        let toastTimeout;
+
+        // Ambil user aktif dari parent/sessionStorage
+        function getActiveUser() {
+            return sessionStorage.getItem('activeUser') || localStorage.getItem('activeUser');
+        }
+
+        function loadUserBalance() {
+            let user = getActiveUser();
+            if (!user) return;
+            let usersDB = JSON.parse(localStorage.getItem('crypsaUsers')) || {};
+            if (usersDB[user]) {
+                if (typeof usersDB[user] === 'object' && usersDB[user].saldo !== undefined) {
+                    balance = usersDB[user].saldo;
+                }
+            }
+            updateUI();
+        }
+
+        function saveUserBalance() {
+            let user = getActiveUser();
+            if (!user) return;
+            let usersDB = JSON.parse(localStorage.getItem('crypsaUsers')) || {};
+            if (usersDB[user]) {
+                if (typeof usersDB[user] !== 'object') {
+                    usersDB[user] = { password: usersDB[user], saldo: balance };
+                } else {
+                    usersDB[user].saldo = balance;
+                }
+                usersDB[user].lastActive = new Date().getTime();
+                localStorage.setItem('crypsaUsers', JSON.stringify(usersDB));
+            }
+        }
+
+        // Baca mode RTP yang diatur oleh Admin di admin.html
+        function getAdminRtpMode() {
+            let user = getActiveUser();
+            if (!user) return 'normal';
+            let usersDB = JSON.parse(localStorage.getItem('crypsaUsers')) || {};
+            if (usersDB[user] && typeof usersDB[user] === 'object' && usersDB[user].rtpMode) {
+                return usersDB[user].rtpMode;
+            }
+            return 'normal';
+        }
+
+        function showToast(msg) {
+            toastEl.innerText = msg;
+            toastEl.classList.add('show');
+            clearTimeout(toastTimeout);
+            toastTimeout = setTimeout(() => {
+                toastEl.classList.remove('show');
+            }, 2000);
+        }
+
+        function initGrid() {
+            gridEl.innerHTML = '';
+            for (let i = 0; i < cols * rows; i++) {
+                let tile = document.createElement('div');
+                tile.className = 'tile';
+                tile.id = `tile-${i}`;
+                gridEl.appendChild(tile);
+            }
+            loadUserBalance();
+        }
+
+        function updateUI() {
+            balanceEl.innerText = balance.toLocaleString('id-ID');
+            betEl.innerText = betOptions[currentBetIndex].toLocaleString('id-ID');
+            scoreEl.innerText = `Rp ${currentScore.toLocaleString('id-ID')}`;
+        }
+
+        function increaseBet() {
+            if (isSpinning || autoSpinsLeft > 0) return;
+            if (currentBetIndex < betOptions.length - 1) {
+                currentBetIndex++; updateUI();
+            }
+        }
+
+        function decreaseBet() {
+            if (isSpinning || autoSpinsLeft > 0) return;
+            if (currentBetIndex > 0) {
+                currentBetIndex--; updateUI();
+            }
+        }
+
+        function toggleTurbo() {
+            isTurbo = !isTurbo;
+            isTurbo ? turboBtn.classList.add('active-turbo') : turboBtn.classList.remove('active-turbo');
+        }
+
+        function toggleAutoMenu() {
+            if (autoSpinsLeft > 0) stopAuto();
+            else autoMenu.classList.toggle('show');
+        }
+
+        function startAuto(count) {
+            autoSpinsLeft = count;
+            autoMenu.classList.remove('show');
+            spin(); 
+        }
+
+        function stopAuto() {
+            autoSpinsLeft = 0;
+            autoTxt.innerText = "AUTO";
+            autoBtn.style.background = ""; autoBtn.style.color = "";
+        }
+
+        function spin() {
+            if (isSpinning) return;
+            loadUserBalance(); // Sinkronisasi saldo terbaru sebelum spin
+            let betAmount = betOptions[currentBetIndex];
+
+            if (balance < betAmount) {
+                stopAuto();
+                showToast("⚠️ Saldo akun tidak cukup untuk taruhan ini!");
+                return;
+            }
+
+            isSpinning = true;
+            spinBtn.disabled = true; btnMin.disabled = true; btnPlus.disabled = true;
+
+            if (autoSpinsLeft > 0) {
+                autoSpinsLeft--; autoTxt.innerText = autoSpinsLeft;
+                autoBtn.style.background = "#cc0000"; autoBtn.style.color = "white";
+            }
+
+            balance -= betAmount; 
+            currentScore = 0; 
+            saveUserBalance();
+            updateUI();
+
+            let rtpMode = getAdminRtpMode();
+            let board = [];
+
+            // PENERAPAN LOGIKA RTP DARI ADMIN
+            if (rtpMode === 'gacor') {
+                // Mode GACOR: Buat baris pertama penuh simbol yang sama (Jackpot!)
+                let jackpotSymbol = symbols[Math.floor(Math.random() * symbols.length)];
+                for (let i = 0; i < cols * rows; i++) {
+                    if (i < 5) board.push(jackpotSymbol);
+                    else board.push(symbols[Math.floor(Math.random() * symbols.length)]);
+                }
+            } else if (rtpMode === 'menang') {
+                // Mode Pasti Menang: Buat minimal 3 simbol berurutan di baris kedua
+                for (let i = 0; i < cols * rows; i++) {
+                    board.push(symbols[Math.floor(Math.random() * symbols.length)]);
+                }
+                board[5] = "🐉"; board[6] = "🐉"; board[7] = "🐉";
+            } else if (rtpMode === 'rungkad') {
+                // Mode Rungkad: Acak acak dan pastikan tidak ada kombinasi menang (atau acak murni tanpa kemenangan)
+                for (let i = 0; i < cols * rows; i++) {
+                    board.push(symbols[(i * 2) % symbols.length]); // Sengaja dibuat selang-seling agar minim match
+                }
+            } else {
+                // Mode Normal (Random murni)
+                for (let i = 0; i < cols * rows; i++) {
+                    board.push(symbols[Math.floor(Math.random() * symbols.length)]);
+                }
+            }
+
+            let animSpeed = isTurbo ? 3 : 20;
+
+            for (let i = 0; i < cols * rows; i++) {
+                let tile = document.getElementById(`tile-${i}`);
+                tile.classList.remove('win'); tile.innerText = board[i];
+                tile.style.transform = "translateY(-50px) scale(0.5)"; tile.style.opacity = "0";
+                
+                setTimeout(() => {
+                    tile.style.transform = "translateY(0) scale(1)"; tile.style.opacity = "1";
+                }, i * animSpeed); 
+            }
+
+            setTimeout(() => { checkWin(board, betAmount, rtpMode); }, (cols * rows * animSpeed) + (isTurbo ? 50 : 150));
+        }
+
+        function checkWin(board, betAmount, rtpMode) {
+            let matchesFound = false, winMultiplier = 0;
+
+            for (let r = 0; r < rows; r++) {
+                for (let c = 0; c < cols - 2; c++) {
+                    let idx1 = r * cols + c, idx2 = r * cols + c + 1, idx3 = r * cols + c + 2;
+                    if (board[idx1] === board[idx2] && board[idx2] === board[idx3]) {
+                        document.getElementById(`tile-${idx1}`).classList.add('win');
+                        document.getElementById(`tile-${idx2}`).classList.add('win');
+                        document.getElementById(`tile-${idx3}`).classList.add('win');
+                        
+                        winMultiplier += (Math.random() * 3) + 2; matchesFound = true;
+                    }
+                }
+            }
+
+            // Paksa hasil sesuai RTP admin jika diset Gacor atau Menang/Rungkad
+            if (rtpMode === 'gacor') {
+                matchesFound = true;
+                winMultiplier = 25; // Jackpot besar
+            } else if (rtpMode === 'menang' && !matchesFound) {
+                matchesFound = true;
+                winMultiplier = 5;
+            } else if (rtpMode === 'rungkad') {
+                matchesFound = false;
+                winMultiplier = 0;
+            }
+
+            if (matchesFound) {
+                currentScore = betAmount * winMultiplier; 
+                balance += currentScore;
+            }
+
+            saveUserBalance();
+            updateUI();
+            
+            let pauseTime = matchesFound ? 800 : (isTurbo ? 200 : 400);
+
+            setTimeout(() => {
+                isSpinning = false;
+                
+                if (autoSpinsLeft > 0) {
+                    if (balance >= betOptions[currentBetIndex]) {
+                        spin(); 
+                    } else {
+                        stopAuto(); 
+                        btnMin.disabled = false; btnPlus.disabled = false; spinBtn.disabled = false;
+                        showToast("⚠️ Auto berhenti: Saldo akun habis.");
+                    }
+                } else {
+                    stopAuto();
+                    btnMin.disabled = false; btnPlus.disabled = false; spinBtn.disabled = false;
+                }
+            }, pauseTime);
+        }
+
+        document.addEventListener('click', function(event) {
+            if (!autoBtn.contains(event.target) && !autoMenu.contains(event.target)) {
+                autoMenu.classList.remove('show');
+            }
+        });
+
+        initGrid();
+    </script>
+</body>
+</html>

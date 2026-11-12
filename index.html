@@ -1,0 +1,620 @@
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CrypsaFX - Premium Trading & Coin Naga</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@1,600;1,700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <style>
+        :root {
+            --bg-base: #0a0c10;
+            --bg-surface: #13161c;
+            --bg-surface-hover: #1c212a;
+            --border-color: #262b36;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent-emerald: #10b981;
+            --accent-gold: #fbbf24;
+            --danger: #ef4444;
+            --radius-lg: 16px;
+            --radius-md: 12px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
+        body { background-color: var(--bg-base); color: var(--text-main); min-height: 100vh; display: flex; flex-direction: column; }
+
+        .main-logo {
+            font-family: 'Playfair Display', serif; font-size: 26px; font-style: italic; font-weight: 700;
+            background: linear-gradient(135deg, var(--accent-gold), var(--accent-emerald));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-align: center;
+        }
+
+        /* AUTH SCREEN */
+        #auth-section {
+            width: 100%; min-height: 100vh; display: flex; flex-direction: column;
+            align-items: center; justify-content: center; padding: 20px;
+        }
+        .auth-card {
+            background-color: var(--bg-surface); border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg); padding: 30px; width: 100%; max-width: 380px;
+        }
+        .auth-card h2 { text-align: center; font-size: 18px; margin-bottom: 20px; }
+        .form-group { margin-bottom: 16px; }
+        .form-group label { display: block; font-size: 12px; color: var(--text-muted); margin-bottom: 6px; }
+        .form-control {
+            width: 100%; background: var(--bg-base); border: 1px solid var(--border-color);
+            color: var(--text-main); padding: 12px; border-radius: var(--radius-md); font-size: 14px; outline: none;
+        }
+        .form-control:focus { border-color: var(--accent-emerald); }
+        .btn-auth {
+            width: 100%; background: var(--accent-emerald); color: white; border: none;
+            padding: 12px; border-radius: var(--radius-md); font-size: 14px; font-weight: 600; cursor: pointer; margin-top: 10px;
+        }
+        .auth-switch { text-align: center; margin-top: 20px; font-size: 12px; color: var(--text-muted); }
+        .auth-switch span { color: var(--accent-gold); cursor: pointer; font-weight: 600; }
+        #auth-msg { text-align: center; font-size: 12px; margin-bottom: 12px; min-height: 16px; }
+        .text-danger { color: var(--danger); }
+        .text-success { color: var(--accent-emerald); }
+
+        /* DASHBOARD SCREEN */
+        #app-section { display: none; width: 100%; flex: 1; }
+        .main-content { padding: 20px; max-width: 700px; margin: 0 auto; padding-bottom: 100px; width: 100%; }
+        
+        /* Top Bar */
+        .top-bar {
+            display: flex; align-items: center; justify-content: space-between; padding: 12px 16px;
+            background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-md);
+            margin-bottom: 20px;
+        }
+        .menu-toggle { background: none; border: none; color: var(--text-main); font-size: 16px; cursor: pointer; font-weight: bold; padding: 6px 12px; background: rgba(255,255,255,0.05); border-radius: 6px; display: flex; align-items: center; gap: 6px; }
+
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+        .greeting h2 { font-size: 18px; font-weight: 700; }
+        .greeting p { color: var(--text-muted); font-size: 12px; }
+        .avatar { width: 34px; height: 34px; border-radius: 50%; background: var(--accent-emerald); display: flex; align-items: center; justify-content: center; font-weight: bold; }
+
+        .stat-card {
+            background: var(--bg-surface); border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg); padding: 20px; margin-bottom: 20px;
+        }
+        .stat-header { display: flex; justify-content: space-between; color: var(--text-muted); font-size: 13px; margin-bottom: 12px; }
+        .stat-value { font-size: 28px; font-weight: 700; color: var(--accent-gold); }
+
+        .view-panel { display: none; }
+        .view-panel.active-view { display: block; }
+        .panel-box { background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 20px; margin-bottom: 20px; }
+        .panel-box h3 { font-size: 15px; margin-bottom: 14px; }
+
+        /* EMBED GAME COIN NAGA CONTAINER */
+        #game-container-box {
+            width: 100%; height: 600px; border: 2px solid var(--border-color);
+            border-radius: var(--radius-lg); overflow: hidden; background: #000; margin-top: 10px;
+        }
+
+        /* BOTTOM NAV */
+        .bottom-nav {
+            position: fixed; bottom: 0; left: 0; width: 100%; background: #13161c;
+            border-top: 1px solid var(--border-color);
+            display: flex; justify-content: space-around; padding: 12px 0; z-index: 1000;
+            box-shadow: 0 -5px 15px rgba(0,0,0,0.5);
+        }
+        .bottom-nav-item { display: flex; flex-direction: column; align-items: center; gap: 4px; color: var(--text-muted); text-decoration: none; font-size: 12px; font-weight: 600; cursor: pointer; }
+        .bottom-nav-item i { font-size: 20px; }
+        .bottom-nav-item.active { color: var(--accent-emerald); }
+
+        /* DRAWER MENU */
+        .drawer-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7);
+            z-index: 2000; opacity: 0; visibility: hidden; transition: 0.3s;
+        }
+        .drawer-overlay.active { opacity: 1; visibility: visible; }
+        .mobile-drawer {
+            position: fixed; top: 0; left: 0; width: 260px; height: 100vh; background: var(--bg-surface);
+            border-right: 1px solid var(--border-color); z-index: 2001; transform: translateX(-100%); transition: 0.3s;
+            display: flex; flex-direction: column; padding: 20px;
+        }
+        .mobile-drawer.active { transform: translateX(0); }
+        .drawer-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; }
+        .drawer-close { background: none; border: none; color: var(--text-main); font-size: 18px; cursor: pointer; font-weight: bold; }
+        .drawer-menu { display: flex; flex-direction: column; gap: 10px; flex: 1; }
+        .drawer-item { display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: var(--radius-md); color: var(--text-main); text-decoration: none; font-size: 14px; cursor: pointer; background: rgba(255,255,255,0.02); }
+        .drawer-item i { font-size: 18px; color: var(--accent-emerald); }
+        .drawer-item:hover { background: var(--bg-surface-hover); }
+        .drawer-logout { color: var(--danger); margin-top: auto; border: 1px solid rgba(239, 68, 68, 0.2); }
+        .drawer-logout i { color: var(--danger); }
+    </style>
+</head>
+<body>
+
+    <!-- HALAMAN LOGIN / REGISTER -->
+    <div id="auth-section">
+        <h1 class="main-logo" style="margin-bottom: 30px;">CrypsaFX</h1>
+        <div class="auth-card">
+            <h2 id="auth-title">Masuk ke Akun</h2>
+            <div id="auth-msg"></div>
+            <div class="form-group">
+                <label>Nama Pengguna</label>
+                <input type="text" id="username" class="form-control" placeholder="Username">
+            </div>
+            <div class="form-group">
+                <label>Kata Sandi (Min. 6 Karakter)</label>
+                <input type="password" id="password" class="form-control" placeholder="Minimal 6 karakter">
+            </div>
+            <button class="btn-auth" id="btn-submit" onclick="handleAuth()">Masuk Sekarang</button>
+            <div class="auth-switch">
+                <p id="switch-text">Belum punya akun? <span onclick="toggleAuthMode()">Buat Akun Baru</span></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- HALAMAN DASHBOARD -->
+    <div id="app-section">
+        <div class="drawer-overlay" id="drawerOverlay" onclick="toggleMenu()"></div>
+        <div class="mobile-drawer" id="mobileDrawer">
+            <div class="drawer-header">
+                <h1 class="main-logo" style="font-size: 20px;">Menu Utama</h1>
+                <button class="drawer-close" onclick="toggleMenu()"><i class="ph ph-x"></i></button>
+            </div>
+            <nav class="drawer-menu">
+                <a class="drawer-item" onclick="switchView('home'); toggleMenu();"><i class="ph ph-house"></i> Beranda</a>
+                <a class="drawer-item" onclick="switchView('game'); toggleMenu();"><i class="ph ph-coins"></i> Game Coin Naga</a>
+                <a class="drawer-item" onclick="switchView('akun'); toggleMenu();"><i class="ph ph-user"></i> Profil Akun</a>
+                <a class="drawer-item" onclick="switchView('saldo'); toggleMenu();"><i class="ph ph-wallet"></i> Isi Saldo</a>
+                <a class="drawer-item" onclick="switchViewToWithdraw(); toggleMenu();"><i class="ph ph-money"></i> Penarikan</a>
+                <a class="drawer-item" onclick="switchView('transaksi'); toggleMenu();"><i class="ph ph-clock-counter-clockwise"></i> Riwayat Transaksi</a>
+            </nav>
+            <div class="drawer-item drawer-logout" onclick="logout()">
+                <i class="ph ph-sign-out"></i> Keluar Sesi
+            </div>
+        </div>
+
+        <main class="main-content">
+            <!-- Top Bar -->
+            <div class="top-bar">
+                <button class="menu-toggle" onclick="toggleMenu()"><i class="ph ph-list"></i> Menu</button>
+                <h1 class="main-logo" style="font-size: 20px; flex: 1; text-align: center;">CrypsaFX</h1>
+                <div style="width: 60px;"></div>
+            </div>
+
+          <header class="header">
+                <div class="greeting">
+                    <h2 id="waktu-sapaan">Selamat Datang</h2>
+                    <p>Sistem aktif</p>
+                </div>
+                <div class="avatar" id="user-avatar">J</div>
+            </header>
+
+            <!-- VIEW 1: HOME -->
+            <div id="view-home" class="view-panel active-view">
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <span>Total Saldo Portofolio</span>
+                        <i class="ph ph-vault" style="font-size: 18px; color: var(--accent-emerald);"></i>
+                    </div>
+                    <div class="stat-value" id="display-saldo">Rp 0</div>
+                </div>
+                <div class="panel-box" style="text-align: center;">
+                    <h3>Mulai Peruntungan & Trading Game</h3>
+                    <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 15px;">Mainkan Coin Naga langsung terhubung dengan saldo portofolio Anda.</p>
+                    <button class="btn-auth" onclick="switchView('game')" style="max-width: 200px; margin: 0 auto;">Mainkan Coin Naga</button>
+                </div>
+            </div>
+
+            <!-- VIEW 2: GAME COIN NAGA (Mahjong Prototipe) -->
+            <div id="view-game" class="view-panel">
+                <div class="panel-box" style="padding: 10px;">
+                    <h3 style="text-align: center; margin-bottom: 10px;">Coin Naga Mahjong</h3>
+                    <div id="game-container-box">
+                        <iframe id="gameIframe" src="CoinNaga.html" style="width:100%; height:100%; border:none;"></iframe>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VIEW 3: ISI SALDO / WITHDRAW -->
+            <div id="view-saldo" class="view-panel">
+                <div class="panel-box">
+                    <h3 id="form-title">Form Transaksi Saldo</h3>
+                    <div class="form-group">
+                        <label>Jenis Transaksi</label>
+                        <select id="trx-type" class="form-control" onchange="handleTrxTypeChange()">
+                            <option value="Isi Saldo (Deposit)">Isi Saldo (Deposit)</option>
+                            <option value="Penarikan (Withdraw)">Penarikan (Withdraw)</option>
+                        </select>
+                    </div>
+
+                    <div id="withdraw-options-container" style="display: none;">
+                        <div class="form-group">
+                            <label>Metode Penarikan</label>
+                            <select id="withdraw-method" class="form-control" onchange="handleMethodChange()">
+                                <option value="DANA">E-Wallet - DANA</option>
+                                <option value="GoPay">E-Wallet - GoPay</option>
+                                <option value="OVO">E-Wallet - OVO</option>
+                                <option value="LinkAja">E-Wallet - LinkAja</option>
+                                <option value="BCA">Bank Transfer - BCA</option>
+                                <option value="BRI">Bank Transfer - BRI</option>
+                                <option value="BNI">Bank Transfer - BNI</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label id="dest-label">Nomor Telepon (E-Wallet)</label>
+                            <input type="text" id="dest-number" class="form-control" placeholder="Contoh: 081234567890">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Nominal (IDR)</label>
+                        <input type="number" id="trx-amount" class="form-control" placeholder="Minimal Rp 10.000 untuk deposit">
+                    </div>
+                    <button class="btn-auth" onclick="requestTransaction()">Kirim ke Admin</button>
+                    <p id="trx-msg" style="margin-top: 10px; font-size: 12px; text-align: center;"></p>
+                </div>
+            </div>
+
+            <!-- VIEW 4: PROFIL AKUN -->
+            <div id="view-akun" class="view-panel">
+                <div class="panel-box">
+                    <h3>Lengkapi Data Profil</h3>
+                    <div class="form-group">
+                        <label>Nama Lengkap</label>
+                        <input type="text" id="profile-name" class="form-control" placeholder="Nama lengkap asli">
+                    </div>
+                    <div class="form-group">
+                        <label>Nomor WhatsApp</label>
+                        <input type="text" id="profile-phone" class="form-control" placeholder="08xxxxxxxxxx">
+                    </div>
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" id="profile-email" class="form-control" placeholder="email@domain.com">
+                    </div>
+                    <button class="btn-auth" onclick="saveRealProfile()">Simpan Profil</button>
+                    <p id="profile-msg" style="margin-top: 10px; font-size: 12px; text-align: center;"></p>
+                </div>
+            </div>
+
+            <!-- VIEW 5: RIWAYAT TRANSAKSI -->
+            <div id="view-transaksi" class="view-panel">
+                <div class="panel-box">
+                    <h3>Riwayat Transaksi Saya</h3>
+                    <div id="history-container" style="font-size: 12px; color: var(--text-muted);">
+                        Belum ada riwayat transaksi.
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- BOTTOM NAV (Tanpa Emoji) -->
+        <nav class="bottom-nav">
+            <a class="bottom-nav-item active" onclick="switchView('home')" id="nav-home">
+                <i class="ph ph-house"></i>
+                <span>Home</span>
+            </a>
+            <a class="bottom-nav-item" onclick="switchView('game')" id="nav-game">
+                <i class="ph ph-coins"></i>
+                <span>Coin Naga</span>
+            </a>
+            <a class="bottom-nav-item" onclick="switchView('saldo')" id="nav-saldo">
+                <i class="ph ph-wallet"></i>
+                <span>Isi Saldo</span>
+            </a>
+            <a class="bottom-nav-item" onclick="switchView('akun')" id="nav-akun">
+                <i class="ph ph-user"></i>
+                <span>Profil</span>
+            </a>
+        </nav>
+    </div>
+
+    <!-- SCRIPT UTAMA -->
+    <script>
+        let isLoginMode = true;
+        const authSection = document.getElementById('auth-section');
+        const appSection = document.getElementById('app-section');
+        const msgBox = document.getElementById('auth-msg');
+
+        window.onload = () => {
+            const activeUser = sessionStorage.getItem('activeUser');
+            if (activeUser) {
+                showDashboard(activeUser);
+            }
+        };
+
+        function toggleAuthMode() {
+            isLoginMode = !isLoginMode;
+            document.getElementById('auth-title').innerText = isLoginMode ? 'Masuk ke Akun' : 'Buat Akun Baru';
+            document.getElementById('btn-submit').innerText = isLoginMode ? 'Masuk Sekarang' : 'Daftar Sekarang';
+            document.getElementById('switch-text').innerHTML = isLoginMode 
+                ? 'Belum punya akun? <span onclick="toggleAuthMode()">Buat Akun Baru</span>'
+                : 'Sudah punya akun? <span onclick="toggleAuthMode()">Masuk di sini</span>';
+            msgBox.innerText = '';
+        }
+
+        function handleAuth() {
+            const user = document.getElementById('username').value.trim();
+            const pass = document.getElementById('password').value.trim();
+            
+            if (!user || !pass) {
+                showMessage('Username dan password wajib diisi!', false);
+                return;
+            }
+
+// CEK APAKAH AKUN DIBLOKIR
+                    if (typeof userData === 'object' && userData.status === 'blocked') {
+                        showMessage('Akun Anda telah diblokir oleh admin!', false);
+                        return;
+                    }
+          
+          // KODE KHUSUS LOGIN ADMIN LEWAT INDEX
+            if (user === 'Rehon' && pass === '123') {
+                sessionStorage.setItem('activeUser', 'admin');
+                window.location.href = 'admin.html';
+                return;
+            }
+
+            let usersDB = JSON.parse(localStorage.getItem('crypsaUsers')) || {};
+
+            if (!isLoginMode) {
+                if (pass.length < 6) {
+                    showMessage('Password minimal 6 karakter!', false);
+                    return;
+                }
+                if (usersDB[user]) {
+                    showMessage('Username sudah terdaftar!', false);
+                } else {
+                    usersDB[user] = { password: pass, saldo: 0, profile: {} };
+                    localStorage.setItem('crypsaUsers', JSON.stringify(usersDB));
+                    showMessage('Berhasil daftar! Silakan masuk.', true);
+                    setTimeout(() => toggleAuthMode(), 1500);
+                }
+            } else {
+                let userData = usersDB[user];
+                let isValid = false;
+                if (userData) {
+                    if (typeof userData === 'object' && userData.password === pass) isValid = true;
+                    if (typeof userData === 'string' && userData === pass) isValid = true;
+                }
+
+                if (isValid) {
+                    sessionStorage.setItem('activeUser', user);
+                    showDashboard(user);
+                } else {
+                    showMessage('Username atau password salah!', false);
+                }
+            }
+        }
+
+        function showMessage(text, isSuccess) {
+            msgBox.innerText = text;
+            msgBox.className = isSuccess ? 'text-success' : 'text-danger';
+        }
+
+      function showDashboard(username) {
+            authSection.style.display = 'none';
+            appSection.style.display = 'block';
+            
+            const hour = new Date().getHours();
+            let sapaan = 'Selamat Malam';
+            if(hour >= 5 && hour < 11) sapaan = 'Selamat Pagi';
+            else if(hour >= 11 && hour < 15) sapaan = 'Selamat Siang';
+            else if(hour >= 15 && hour < 18) sapaan = 'Selamat Sore';
+            
+            document.getElementById('waktu-sapaan').innerText = `${sapaan}, ${username}`;
+            document.getElementById('user-avatar').innerText = username.charAt(0).toUpperCase();
+            loadUserData(username);
+        }
+
+        function switchView(viewName) {
+            document.querySelectorAll('.view-panel').forEach(el => el.classList.remove('active-view'));
+            document.querySelectorAll('.bottom-nav-item').forEach(el => el.classList.remove('active'));
+
+            let activeUser = sessionStorage.getItem('activeUser');
+
+            if(viewName === 'home') {
+                document.getElementById('view-home').classList.add('active-view');
+                document.getElementById('nav-home').classList.add('active');
+                if (activeUser) loadUserData(activeUser); // Sinkronisasi saldo otomatis saat kembali ke home
+            } else if(viewName === 'game') {
+                document.getElementById('view-game').classList.add('active-view');
+                document.getElementById('nav-game').classList.add('active');
+                let iframe = document.getElementById('gameIframe');
+                if(iframe) iframe.src = iframe.src; // Reload iframe agar saldo game selalu diperbarui
+            } else if(viewName === 'saldo') {
+                document.getElementById('view-saldo').classList.add('active-view');
+                document.getElementById('nav-saldo').classList.add('active');
+            } else if(viewName === 'akun') {
+                document.getElementById('view-akun').classList.add('active-view');
+                document.getElementById('nav-akun').classList.add('active');
+            } else if(viewName === 'transaksi') {
+                document.getElementById('view-transaksi').classList.add('active-view');
+                loadUserHistory(activeUser);
+            }
+        }
+
+        function switchViewToWithdraw() {
+            switchView('saldo');
+            document.getElementById('trx-type').value = 'Penarikan (Withdraw)';
+            handleTrxTypeChange();
+        }
+
+        function handleTrxTypeChange() {
+            let type = document.getElementById('trx-type').value;
+            let container = document.getElementById('withdraw-options-container');
+            if (type.includes('Penarikan')) {
+                container.style.display = 'block';
+                handleMethodChange();
+            } else {
+                container.style.display = 'none';
+            }
+        }
+
+        function handleMethodChange() {
+            let method = document.getElementById('withdraw-method').value;
+            let label = document.getElementById('dest-label');
+            let input = document.getElementById('dest-number');
+
+            if (['DANA', 'GoPay', 'OVO', 'LinkAja'].includes(method)) {
+                label.innerText = `Nomor Telepon (${method})`;
+                input.placeholder = 'Contoh: 081234567890';
+            } else {
+                label.innerText = `Nomor Rekening (${method})`;
+                input.placeholder = 'Contoh: 1234567890';
+            }
+        }
+
+        function loadUserData(username) {
+            let usersDB = JSON.parse(localStorage.getItem('crypsaUsers')) || {};
+            let userData = usersDB[username];
+            let saldo = 0;
+            if (userData) {
+                if (typeof userData === 'object' && userData.saldo !== undefined) saldo = userData.saldo;
+                if (userData.profile) {
+                    document.getElementById('profile-name').value = userData.profile.name || '';
+                    document.getElementById('profile-phone').value = userData.profile.phone || '';
+                    document.getElementById('profile-email').value = userData.profile.email || '';
+                }
+            }
+            document.getElementById('display-saldo').innerText = `Rp ${saldo.toLocaleString('id-ID')}`;
+        }
+
+        function saveRealProfile() {
+            let name = document.getElementById('profile-name').value.trim();
+            let phone = document.getElementById('profile-phone').value.trim();
+            let email = document.getElementById('profile-email').value.trim();
+            let msgEl = document.getElementById('profile-msg');
+
+            if (name.length < 3 || !name.includes(' ')) {
+                msgEl.innerText = 'Nama lengkap harus minimal 2 kata!';
+                msgEl.className = 'text-danger';
+                return;
+            }
+            if (!phone.startsWith('08') || phone.length < 10) {
+                msgEl.innerText = 'No WhatsApp harus diawali 08 dan min 10 digit!';
+                msgEl.className = 'text-danger';
+                return;
+            }
+            if (!email.includes('@') || !email.includes('.')) {
+                msgEl.innerText = 'Format email tidak valid!';
+                msgEl.className = 'text-danger';
+                return;
+            }
+
+            let username = sessionStorage.getItem('activeUser');
+            let usersDB = JSON.parse(localStorage.getItem('crypsaUsers')) || {};
+            
+            if(usersDB[username]) {
+                if(typeof usersDB[username] !== 'object') {
+                    usersDB[username] = { password: usersDB[username], saldo: 0 };
+                }
+                usersDB[username].profile = { name, phone, email };
+                localStorage.setItem('crypsaUsers', JSON.stringify(usersDB));
+                msgEl.innerText = 'Profil berhasil disimpan!';
+                msgEl.className = 'text-success';
+            }
+        }
+
+        function requestTransaction() {
+            let type = document.getElementById('trx-type').value;
+            let amount = parseInt(document.getElementById('trx-amount').value);
+            let msgEl = document.getElementById('trx-msg');
+            let username = sessionStorage.getItem('activeUser');
+
+            let usersDB = JSON.parse(localStorage.getItem('crypsaUsers')) || {};
+            let userData = usersDB[username];
+            let currentSaldo = (userData && typeof userData === 'object' && userData.saldo !== undefined) ? userData.saldo : 0;
+
+            if (type.includes('Deposit')) {
+                if (!amount || amount < 10000) {
+                    msgEl.innerText = 'Minimal isi ulang saldo adalah Rp 10.000!';
+                    msgEl.className = 'text-danger';
+                    return;
+                }
+            }
+
+            if (type.includes('Penarikan')) {
+                if (currentSaldo <= 0) {
+                    msgEl.innerText = 'Gagal: Saldo Anda Rp 0, tidak dapat melakukan penarikan!';
+                    msgEl.className = 'text-danger';
+                    return;
+                }
+                if (!amount || amount <= 0) {
+                    msgEl.innerText = 'Masukkan nominal penarikan yang valid!';
+                    msgEl.className = 'text-danger';
+                    return;
+                }
+                if (amount > currentSaldo) {
+                    msgEl.innerText = `Gagal: Nominal melebihi saldo aktif (Rp ${currentSaldo.toLocaleString('id-ID')})!`;
+                    msgEl.className = 'text-danger';
+                    return;
+                }
+
+                let destNum = document.getElementById('dest-number').value.trim();
+                if (!destNum) {
+                    msgEl.innerText = 'Nomor telepon / rekening tujuan wajib diisi!';
+                    msgEl.className = 'text-danger';
+                    return;
+                }
+            }
+
+            let details = '';
+            if (type.includes('Penarikan')) {
+                let method = document.getElementById('withdraw-method').value;
+                let destNum = document.getElementById('dest-number').value.trim();
+                details = `(${method}: ${destNum})`;
+            }
+
+            let allTrx = JSON.parse(localStorage.getItem('crypsaTrx')) || [];
+            allTrx.push({
+                id: 'TRX-' + Math.floor(1000 + Math.random() * 9000),
+                user: username,
+                type: type + ' ' + details,
+                amount: amount,
+                status: 'Pending'
+            });
+
+            localStorage.setItem('crypsaTrx', JSON.stringify(allTrx));
+            msgEl.innerText = 'Permintaan berhasil dikirim ke Admin!';
+            msgEl.className = 'text-success';
+            document.getElementById('trx-amount').value = '';
+            if(document.getElementById('dest-number')) document.getElementById('dest-number').value = '';
+        }
+
+        function loadUserHistory(username) {
+            let allTrx = JSON.parse(localStorage.getItem('crypsaTrx')) || [];
+            let myTrx = allTrx.filter(t => t.user === username);
+            let container = document.getElementById('history-container');
+
+            if (myTrx.length === 0) {
+                container.innerHTML = 'Belum ada riwayat transaksi.';
+                return;
+            }
+          let html = '<table style="width:100%; border-collapse:collapse;">';
+            html += '<tr style="color:var(--text-muted); border-bottom:1px solid var(--border-color);"><th style="text-align:left; padding:6px;">ID</th><th style="text-align:left; padding:6px;">Tipe & Tujuan</th><th style="text-align:left; padding:6px;">Nominal</th><th style="text-align:left; padding:6px;">Status</th></tr>';
+            
+            myTrx.forEach(t => {
+                let color = t.status === 'Pending' ? 'color: var(--accent-gold);' : 'color: var(--accent-emerald);';
+                html += `<tr style="border-bottom:1px solid var(--border-color);">
+                    <td style="padding:8px;">${t.id}</td>
+                    <td style="padding:8px;">${t.type}</td>
+                    <td style="padding:8px;">Rp ${t.amount.toLocaleString('id-ID')}</td>
+                    <td style="padding:8px; font-weight:600; ${color}">${t.status}</td>
+                </tr>`;
+            });
+            html += '</table>';
+            container.innerHTML = html;
+        }
+
+        function logout() {
+            sessionStorage.removeItem('activeUser');
+            appSection.style.display = 'none';
+            authSection.style.display = 'flex';
+        }
+
+        const drawer = document.getElementById('mobileDrawer');
+        const overlay = document.getElementById('drawerOverlay');
+        function toggleMenu() {
+            drawer.classList.toggle('active');
+            overlay.classList.toggle('active');
+        }
+    </script>
+</body>
+</html>
